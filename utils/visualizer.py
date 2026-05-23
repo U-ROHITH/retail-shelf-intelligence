@@ -5,7 +5,7 @@ labels, shelf-row overlays, and a colour-coded legend.
 
 from __future__ import annotations
 
-from typing import Dict, List
+from typing import Dict, List, Set
 
 import cv2
 import numpy as np
@@ -14,10 +14,10 @@ from config import BRAND_COLORS
 from pipeline.detector import Detection
 
 _FONT = cv2.FONT_HERSHEY_SIMPLEX
-_FONT_SCALE = 0.45
+_FONT_SCALE = 0.42
 _LINE_THICKNESS = 2
-_LEGEND_BOX = 14   # side length of colour swatch in legend
-_LEGEND_PAD = 6    # padding around legend text
+_LEGEND_BOX = 13   # colour swatch side length in pixels
+_LEGEND_PAD = 5    # padding between legend rows
 
 
 def _draw_row_overlays(
@@ -73,18 +73,33 @@ def _draw_detections(
         )
 
 
-def _draw_legend(image: np.ndarray) -> None:
-    brands = list(BRAND_COLORS.keys())
+def _draw_legend(image: np.ndarray, active_brands: Set[str]) -> None:
+    """Draw a legend showing only the brands that appear in this image."""
+    # Keep insertion order; always put Other last
+    ordered = [b for b in BRAND_COLORS if b in active_brands and b != "Other"]
+    if "Other" in active_brands:
+        ordered.append("Other")
+
+    if not ordered:
+        return
+
     max_label_w = max(
-        cv2.getTextSize(b, _FONT, _FONT_SCALE, 1)[0][0] for b in brands
+        cv2.getTextSize(b, _FONT, _FONT_SCALE, 1)[0][0] for b in ordered
     )
     legend_w = _LEGEND_BOX + _LEGEND_PAD * 3 + max_label_w
-    legend_h = len(brands) * (_LEGEND_BOX + _LEGEND_PAD) + _LEGEND_PAD
+    legend_h = len(ordered) * (_LEGEND_BOX + _LEGEND_PAD) + _LEGEND_PAD
 
     lx, ly = 8, 8
-    cv2.rectangle(image, (lx - 4, ly - 4), (lx + legend_w, ly + legend_h), (20, 20, 20), -1)
+    # Dark background panel
+    cv2.rectangle(
+        image,
+        (lx - 4, ly - 4),
+        (lx + legend_w + 4, ly + legend_h + 4),
+        (20, 20, 20), -1,
+    )
 
-    for i, (brand, color) in enumerate(BRAND_COLORS.items()):
+    for i, brand in enumerate(ordered):
+        color = BRAND_COLORS.get(brand, (140, 140, 140))
         y = ly + i * (_LEGEND_BOX + _LEGEND_PAD) + _LEGEND_PAD
         cv2.rectangle(image, (lx, y), (lx + _LEGEND_BOX, y + _LEGEND_BOX), color, -1)
         cv2.putText(
@@ -101,12 +116,12 @@ def annotate_image(
     row_map: Dict[int, int],
 ) -> np.ndarray:
     """
-    Return a copy of *image* (RGB) with:
+    Return *image* (RGB) annotated with:
     - Semi-transparent shelf-row bands
     - Colour-coded bounding boxes labelled with brand and row index
-    - A colour legend in the top-left corner
+    - A legend showing only brands detected in this image
     """
     _draw_row_overlays(image, detections, row_map)
     _draw_detections(image, detections, brands, row_map)
-    _draw_legend(image)
+    _draw_legend(image, set(brands))
     return image

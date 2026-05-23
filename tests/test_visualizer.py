@@ -7,6 +7,7 @@ import pytest
 
 from pipeline.detector import Detection
 from utils.visualizer import annotate_image, _draw_legend, _draw_detections, _draw_row_overlays
+from config import BRAND_COLORS
 
 
 @pytest.fixture
@@ -62,8 +63,15 @@ class TestAnnotateImage:
 class TestDrawLegend:
     def test_legend_modifies_image(self, blank_rgb):
         original = blank_rgb.copy()
-        _draw_legend(blank_rgb)
+        _draw_legend(blank_rgb, {"Coca-Cola", "Pepsi"})
         assert not np.array_equal(blank_rgb, original)
+
+    def test_empty_active_brands_no_crash(self, blank_rgb):
+        _draw_legend(blank_rgb, set())  # should silently return
+
+    def test_other_always_last(self, blank_rgb):
+        # Should not raise with Other in the set
+        _draw_legend(blank_rgb, {"Pepsi", "Other", "Amul"})
 
 
 class TestDrawDetections:
