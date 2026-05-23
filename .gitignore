@@ -4,4 +4,8 @@ __pycache__/
 .coverage
 .pytest_cache/
 yolov8n.pt
-outputs/img_*
+
+# private assignment materials — not for public repo
+Material/
+image.png
+images/
