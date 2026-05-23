@@ -15,9 +15,10 @@ The pipeline covers every point requested:
 | 3 | OCR from shelf labels / price tags | EasyOCR with price/label filter |
 | 4 | Shelf segmentation + space estimation | DBSCAN row clustering + bounding-box area share-of-shelf |
 | 5 | Clean modular code | `pipeline/`, `utils/`, `tests/` — each stage is its own module |
-| 6 | Prediction outputs on all 3 test images | `outputs/` — annotated JPGs + JSON per image |
-| 7 | Visualized prediction plots | Bounding boxes, per-brand colours, row overlays, legend |
-| 8 | Assumptions / limitations | Listed at the bottom of this file |
+| 6 | Model research / tool selection rationale | Approach section below — why each model was chosen over alternatives |
+| 7 | Prediction outputs on all 3 test images | `outputs/` — annotated JPGs + JSON per image |
+| 8 | Visualized prediction plots | Bounding boxes, per-brand colours, row overlays, legend |
+| 9 | Assumptions / limitations / tradeoffs | Listed at the bottom of this file |
 
 ---
 
@@ -61,7 +62,7 @@ python main.py path/to/shelf.jpg
 pytest tests/ -v --cov=pipeline --cov=utils --cov-report=term-missing
 ```
 
-69 tests, all passing.
+69 tests, all passing — 99% line coverage across `pipeline/` and `utils/`.
 
 ---
 
@@ -276,4 +277,5 @@ retail-shelf-intelligence/
 | 5 | Brand list is in `config.py`; adding new brands requires no retraining — just a text prompt |
 | 6 | DBSCAN `eps=55 px` is calibrated for ~600–1000 px tall images with 3–5 shelf rows |
 | 7 | "Other" is a valid category per the assignment; it catches products outside the 31-brand vocabulary |
-| 8 | Pipeline is CPU-safe; GPU (if available) is used automatically for faster inference |
+| 8 | OCR output includes some noise (short uppercase tokens, bare numbers) — EasyOCR picks up non-price text that passes the label filter; a stricter regex would reduce but not eliminate this |
+| 9 | Pipeline is CPU-safe; GPU (if available) is used automatically for faster inference |

@@ -79,7 +79,7 @@ def main() -> None:
     # ---- Stage 2: Classification ------------------------------------
     _box(ax, 4.7, 5.5, 4.6, 1.2,
          "2  Brand Classification",
-         "CLIP ViT-B/32 (zero-shot)\n7 brands + Other\nNo fine-tuning required",
+         "CLIP ViT-B/32 (zero-shot)\n31 brands + Other\nNo fine-tuning required",
          color="#6D28D9")
 
     # ---- Stage 3: OCR -----------------------------------------------
